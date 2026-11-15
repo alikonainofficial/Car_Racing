@@ -332,13 +332,17 @@
     }
     G.skidCtx.clearRect(0, 0, G.skidCanvas.width, G.skidCanvas.height);
   }
+  // Reduced motion: no screen shake and no dust; sounds stay.
+  var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  function reducedMotion() { return !!(motionQuery && motionQuery.matches); }
   var carEnv = {
     onHit: function (x, y) {
-      Arcade.fx.shake(3, 100);
+      if (!reducedMotion()) Arcade.fx.shake(3, 100);
       Arcade.sfx.play('thud');
       Arcade.fx.burst(x, y, { color: '#9a8f7a', count: 6, speed: 120, life: 0.3 });
     },
     onDust: function (x, y) {
+      if (reducedMotion()) return;
       Arcade.fx.burst(x, y, { color: '#cdbf9c', count: 1, speed: 25, life: 0.6, size: 5, gravity: 0 });
     },
     skid: null
@@ -449,7 +453,7 @@
         if (k === car.nextCp && !car.finished && live) {
           c.save();
           c.strokeStyle = car.color; c.lineWidth = 3;
-          c.globalAlpha = 0.6 + 0.4 * Math.sin(performance.now() / 180);
+          c.globalAlpha = reducedMotion() ? 0.9 : 0.6 + 0.4 * Math.sin(performance.now() / 180);
           var inset = 2 + ci * 4;
           c.strokeRect(x0 + inset, y0 + inset, T - inset * 2, T - inset * 2);
           c.restore();
